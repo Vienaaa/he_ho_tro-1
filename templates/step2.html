@@ -1,0 +1,322 @@
+<!-- <!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bước 2 - Chọn tiêu chí và phương án</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    select { width: 100%; padding: 6px; margin-top: 5px; box-sizing: border-box; font-size: 16px; }
+    button { margin-top: 30px; padding: 10px 20px; font-size: 16px; }
+    .error { color: red; margin-top: 15px; }
+  </style>
+</head>
+<body>
+  <h1>Bước 2: Chọn tiêu chí và phương án</h1>
+
+  <form method="POST" action="{{ url_for('step2') }}">
+    <h2>Chọn {{ n_criteria }} tiêu chí</h2>
+    {% for i in range(n_criteria) %}
+      <label for="criterion{{i}}">Tiêu chí {{i + 1}}:</label>
+      <select id="criterion{{i}}" name="criteria[]" required>
+        <option value="">-- Chọn tiêu chí --</option>
+        {% for c in available_criteria %}
+          <option value="{{ c }}" {% if selected_criteria[i] == c %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    {% endfor %}
+
+    <h2>Chọn {{ n_options }} phương án</h2>
+    {% for i in range(n_options) %}
+      <label for="option{{i}}">Phương án {{i + 1}}:</label>
+      <select id="option{{i}}" name="options[]" required>
+        <option value="">-- Chọn phương án --</option>
+        {% for o in available_options %}
+          <option value="{{ o }}" {% if selected_options[i] == o %}selected{% endif %}>{{ o }}</option>
+        {% endfor %}
+      </select>
+    {% endfor %}
+
+    <button type="submit">Tiếp tục</button>
+
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+  </form>
+</body>
+</html> 
+
+
+
+ -->
+
+
+ <!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Bước 2 - Chọn tiêu chí và phương án</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --primary: #059669;
+      --dark-bg: #000000;
+      --light-text: #f8fafc;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation Styles */
+    .navbar {
+      background: var(--dark-bg);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .nav-link {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 0.375rem;
+      transition: all 0.3s ease;
+      position: relative;
+      text-decoration: none;
+    }
+
+    .nav-link:hover {
+      color: white;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      height: 2px;
+      background: var(--primary);
+    }
+
+    /* Form Container */
+    .form-container {
+      max-width: 800px;
+      background: white;
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      position: relative;
+      padding-left: 1.25rem;
+    }
+
+    .section-title::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: 4px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    select {
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 0.75rem;
+      transition: all 0.3s ease;
+    }
+
+    select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      background: var(--primary);
+      color: white;
+      padding: 1.25rem 3rem;
+      font-size: 1.125rem;
+      border-radius: 0.75rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn:hover {
+      background: #047857;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(5, 150, 105, 0.3);
+    }
+
+    .submit-btn::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transform: rotate(45deg);
+      animation: shine 1.5s infinite;
+    }
+
+    @keyframes shine {
+      0% { left: -50%; }
+      100% { left: 150%; }
+    }
+.header-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.25rem; /* Larger and bolder title */
+    font-weight: 800;
+    color: #2563eb; /* Primary blue color */
+    text-align: center;
+    margin-bottom: 1rem;
+    letter-spacing: -0.04em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+    /* Error Message */
+    .error-message {
+      background: #fef2f2;
+      border: 2px solid #fecaca;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <a href="/" class="text-2xl font-bold text-white">DECISION PRO</a>
+        
+        <div class="nav-links">
+          <a href="/" class="nav-link">Trang chủ</a>
+          <a href="/bat-dau" class="nav-link active">Bắt đầu</a>
+          <a href="/tieu-chi" class="nav-link">Tiêu chí</a>
+          <a href="/phuong-an" class="nav-link">Phương án</a>
+          <a href="/lien-he" class="nav-link">Liên hệ</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-1">
+    <div class="container mx-auto px-4 py-12">
+      <div class="form-container mx-auto p-8">
+<h1 class="header-title">
+    LỰA CHỌN ĐÁNH GIÁ
+</h1>
+
+
+
+        <form method="POST" action="{{ url_for('step2') }}" class="space-y-8">
+          <!-- Criteria Section -->
+          <div class="criteria-section">
+            <h2 class="section-title text-xl font-bold mb-6">
+              Chọn {{ n_criteria }} Tiêu Chí
+            </h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {% for i in range(n_criteria) %}
+              <div>
+                <label class="block text-sm font-medium mb-2">Tiêu chí {{i + 1}}</label>
+                <select name="criteria[]" class="w-full" required>
+                  <option value="">-- Chọn tiêu chí --</option>
+                  {% for c in available_criteria %}
+                  <option value="{{ c }}" {% if selected_criteria[i]==c %}selected{% endif %}>{{ c }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Options Section -->
+          <div class="options-section">
+            <h2 class="section-title text-xl font-bold mb-6">
+              Chọn {{ n_options }} Phương Án
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {% for i in range(n_options) %}
+              <div>
+                <label class="block text-sm font-medium mb-2">Phương án {{i + 1}}</label>
+                <select name="options[]" class="w-full" required>
+                  <option value="">-- Chọn phương án --</option>
+                  {% for o in available_options %}
+                  <option value="{{ o }}" {% if selected_options[i]==o %}selected{% endif %}>{{ o }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Submit Section -->
+          <div class="text-center mt-12">
+            <button type="submit" class="submit-btn font-semibold">
+              TIẾP TỤC →
+            </button>
+
+            {% if error %}
+            <div class="error-message mt-6 p-4 rounded-lg text-red-600 font-medium">
+              ⚠️ {{ error }}
+            </div>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-black text-white py-6 mt-12">
+    <div class="container mx-auto px-4 text-center">
+      <p class="text-sm opacity-75">
+        © 2024 Decision Pro. Bảo lưu mọi quyền.<br>
+        <a href="#" class="hover:text-green-500 transition-colors">Điều khoản sử dụng</a> | 
+        <a href="#" class="hover:text-green-500 transition-colors">Chính sách bảo mật</a>
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

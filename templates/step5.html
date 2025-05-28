@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bước 5 - Kết quả AHP</title>
+    <style>
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #2196F3;
+            --danger-color: #f44336;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 20px;
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 1rem;
+        }
+
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+
+        .matrix-table th,
+        .matrix-table td {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+        }
+
+        .matrix-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+        }
+
+        .result-table th,
+        .result-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #842029;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #f5c2c7;
+            text-align: center;
+        }
+
+        .result-table th {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: 500;
+        }
+
+        .download-btn, .history-btn {
+            background: linear-gradient(to right, var(--primary-color), #45a049);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+        }
+
+        .download-btn:hover, .history-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            color: var(--secondary-color);
+            margin: 2rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0 10px;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kết Quả Phân Tích</h1>
+
+        {% if error %}
+            <div class="error-message">{{ error }}</div>
+        {% else %}
+           
+            <div class="cr-indicator">
+                Chỉ số nhất quán CR: {{ criteria_cr | round(4) }} 
+                {% if criteria_cr > 0.1 %}
+                    (CẢNH BÁO: CR > 0.1 - Cần kiểm tra lại các so sánh)
+                {% else %}
+                    (Đạt yêu cầu nhất quán)
+                {% endif %}
+            </div>
+
+           
+            <h2 class="section-title">Trọng Số Các Tiêu Chí</h2>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>Tiêu chí</th>
+                        <th>Trọng số</th>
+                        <th>Ma trận so sánh</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for criterion, weight in zip(criteria, criteria_weights) %}
+                    <tr>
+                        <td>{{ criterion }}</td>
+                        <td>{{ weight | round(4) }}</td>
+                        <td>
+                            <details>
+                                <summary>Xem ma trận</summary>
+                                <table class="matrix-table">
+                                    {% for row in pairwise_matrices[criterion] %}
+                                    <tr>
+                                        {% for val in row %}
+                                        <td>{{ val | round(3) }}</td>
+                                        {% endfor %}
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </details>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            
+            <h2 class="section-title">Xếp Hạng Phương Án</h2>
+            <table class="result-table">
+                <thead>
+                    <tr>
+                        <th>Xếp hạng</th>
+                        <th>Phương án</th>
+                        <th>Điểm tổng hợp</th>
+                        <th>Chi tiết theo tiêu chí</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in df_results %}
+                    <tr>
+                        <td><span class="rank-badge">#{{ row['Xếp hạng'] }}</span></td>
+                        <td>{{ row['Phương án'] }}</td>
+                        <td>{{ row['Điểm tổng hợp'] | round(4) }}</td>
+                        <td>
+                            <ul style="text-align: left; margin: 0; padding-left: 1.5rem;">
+                                {% for criterion in criteria %}
+                                <li>{{ criterion }}: {{ row[criterion] | round(4) }}</li>
+                                {% endfor %}
+                            </ul>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+           
+            <div style="text-align: center; margin-top: 2rem;">
+                <form method="post" style="display: inline-block;">
+                    <button type="submit" name="download" value="1" class="download-btn">
+                        ⬇️ Tải Báo Cáo Đầy Đủ (Excel)
+                    </button>
+                </form>
+                <a href="/templates/history.html" class="history-btn">
+                    📜 Xem Lịch Sử
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

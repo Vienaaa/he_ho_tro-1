@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <title>Trang chủ - Hệ thống Hỗ trợ Lựa chọn Bảo hiểm</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+        .navbar {
+            background-color: #1a202c;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+        .navbar-brand {
+            color: #e2e8f0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .navbar-brand:hover {
+            color: #63b3ed;
+        }
+        .nav-links a {
+            color: #cbd5e0;
+            text-decoration: none;
+            margin-left: 2.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.3s ease, transform 0.2s ease;
+            position: relative;
+        }
+        .nav-links a:hover {
+            color: #90cdf4;
+            transform: translateY(-2px);
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #63b3ed;
+            transition: width 0.3s ease-out;
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .nav-links a.active {
+            color: #90cdf4;
+            font-weight: 700;
+        }
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .hero-section {
+            background: linear-gradient(to right, #2563eb, #1e40af); /* Deeper blue for professionalism */
+            color: white;
+            padding: 6rem 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom-left-radius: 50px;
+            border-bottom-right-radius: 50px;
+        }
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://source.unsplash.com/random/?insurance,finance,protection'); /* Professional insurance theme */
+            background-size: cover;
+            background-position: center;
+            opacity: 0.15; /* More subtle overlay */
+            z-index: 0;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 900px; /* Wider for comprehensive message */
+            margin: 0 auto;
+        }
+        .hero-content h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .hero-content p {
+            font-size: 1.35rem; /* Larger font for key message */
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+        }
+        .hero-button {
+            display: inline-block;
+            background-color: #f6ad55;
+            color: #1a202c;
+            padding: 1.2rem 3rem;
+            border-radius: 0.75rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0.75rem 1.5rem rgba(246, 173, 85, 0.3);
+        }
+        .hero-button:hover {
+            background-color: #ed8936;
+            transform: translateY(-0.25rem);
+            box-shadow: 0 1rem 2rem rgba(246, 173, 85, 0.4);
+        }
+
+        .features-section {
+            padding: 5rem 1.5rem;
+            background-color: white;
+            text-align: center;
+            border-radius: 1.5rem;
+            margin: -3rem auto 3rem;
+            max-width: 1000px;
+            box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.1);
+            animation: slideInUp 0.8s ease-out forwards;
+            opacity: 0;
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .features-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 3.5rem;
+            letter-spacing: -0.04em;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2.5rem;
+        }
+        .feature-item {
+            background-color: #f8fafc;
+            padding: 2.5rem;
+            border-radius: 1.25rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        .feature-item:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.1);
+        }
+        .feature-icon {
+            font-size: 3rem;
+            color: #2563eb; /* Primary blue for icons */
+            margin-bottom: 1.5rem;
+        }
+        .feature-item h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+        .feature-item p {
+            font-size: 1rem;
+            color: #4a5568;
+        }
+
+        .cta-section {
+            background-color: #2d3748;
+            color: white;
+            padding: 5rem 1.5rem;
+            text-align: center;
+            border-radius: 1.5rem;
+            margin: 3rem auto;
+            max-width: 1000px;
+            box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.1);
+        }
+        .cta-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.04em;
+        }
+        .cta-section p {
+            font-size: 1.15rem;
+            margin-bottom: 2.5rem;
+            opacity: 0.9;
+        }
+        .cta-button {
+            background-color: #10b981;
+            color: white;
+            padding: 1.2rem 3rem;
+            border-radius: 0.75rem;
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0.75rem 1.5rem rgba(16, 185, 129, 0.3);
+        }
+        .cta-button:hover {
+            background-color: #059669;
+            transform: translateY(-0.25rem);
+            box-shadow: 0 1rem 2rem rgba(16, 185, 129, 0.4);
+        }
+
+        .providers-section {
+            padding: 5rem 1.5rem;
+            background-color: #f8fafc;
+            text-align: center;
+            border-radius: 1.5rem;
+            margin: 3rem auto;
+            max-width: 1000px;
+            box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.08);
+        }
+        .providers-section h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 3.5rem;
+            letter-spacing: -0.04em;
+        }
+        .provider-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+        }
+        .provider-item {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-width: 200px;
+            flex: 1 1 auto;
+            max-width: 280px;
+            border: 1px solid #e2e8f0;
+        }
+        .provider-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.1);
+        }
+        .provider-item h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+
+        .footer {
+            background-color: #1a202c;
+            color: #cbd5e0;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: 4rem;
+        }
+        .footer a {
+            color: #90cdf4;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer a:hover {
+            color: #63b3ed;
+        }
+        .footer-links {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-brand">DecisionInsure Pro</a> <div class="nav-links">
+                <a href="#" class="active">Trang chủ</a>
+                <a href="/step1">Bắt đầu</a>
+                <a href="#features">Tiêu chí</a>
+                <a href="#providers">Nhà cung cấp</a>
+                <a href="#contact">Liên hệ</a>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1>Lựa Chọn Bảo Hiểm Thông Minh Hơn</h1>
+            <p>Hệ thống hỗ trợ quyết định của chúng tôi giúp bạn dễ dàng tìm kiếm và lựa chọn **nhà cung cấp dịch vụ bảo hiểm** phù hợp nhất với nhu cầu cá nhân.</p>
+            <a href="http://127.0.0.1:5000/step1" class="hero-button">Bắt Đầu Đánh Giá Ngay</a>
+        </div>
+    </section>
+
+    ---
+
+    <section id="features" class="features-section">
+        <h2>Tiêu Chí Quan Trọng Trong Lựa Chọn Bảo Hiểm</h2>
+        <div class="feature-grid">
+            <div class="feature-item">
+                <span class="feature-icon">💲</span>
+                <h3>Chi phí & Mức phí bảo hiểm</h3>
+                <p>Đánh giá tổng quan về phí đóng và các chi phí liên quan đến gói bảo hiểm.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">🗺️</span>
+                <h3>Phạm vi bảo hiểm</h3>
+                <p>Mức độ bao phủ rủi ro và quyền lợi mà gói bảo hiểm mang lại.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">⭐</span>
+                <h3>Uy tín & Đánh giá</h3>
+                <p>Mức độ tin cậy, lịch sử hoạt động và phản hồi từ khách hàng hiện tại.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📞</span>
+                <h3>Dịch vụ khách hàng</h3>
+                <p>Chất lượng hỗ trợ, tư vấn và giải quyết yêu cầu của nhà cung cấp.</p>
+            </div>
+            <div class="feature-item">
+                <span class="feature-icon">📄</span>
+                <h3>Điều khoản hợp đồng</h3>
+                <p>Sự rõ ràng, minh bạch và linh hoạt của các điều kiện trong hợp đồng bảo hiểm.</p>
+            </div>
+        </div>
+    </section>
+
+    ---
+
+    <section id="providers" class="providers-section">
+        <h2>Các Nhà Cung Cấp Dịch Vụ Bảo Hiểm Nổi Bật</h2>
+        <p class="text-gray-600 mb-8 max-w-2xl mx-auto">Hệ thống của chúng tôi hỗ trợ so sánh các nhà cung cấp hàng đầu trên thị trường, giúp bạn có cái nhìn toàn diện.</p>
+        <div class="provider-list">
+            <div class="provider-item">
+                <h3>Bảo Việt Nhân Thọ</h3>
+            </div>
+            <div class="provider-item">
+                <h3>Prudential Việt Nam</h3>
+            </div>
+            <div class="provider-item">
+                <h3>Dai-ichi Việt Nam</h3>
+            </div>
+            <div class="provider-item">
+                <h3>Hanwha Life Việt Nam</h3>
+            </div>
+            </div>
+    </section>
+
+    ---
+
+    <section class="cta-section">
+        <h2>Đưa Ra Quyết Định Bảo Hiểm Tốt Nhất</h2>
+        <p>Không còn băn khoăn hay lãng phí thời gian tìm kiếm. Hãy để công cụ của chúng tôi hướng dẫn bạn chọn được giải pháp bảo hiểm hoàn hảo.</p>
+        <a href="/step1" class="cta-button">Bắt Đầu Phân Tích Ngay</a>
+    </section>
+
+    ---
+
+    <footer id="contact" class="footer">
+        <p>&copy; 2024 DecisionInsure Pro. Tất cả quyền được bảo lưu.</p>
+        <div class="footer-links">
+            <a href="#">Chính sách bảo mật</a>
+            <a href="#">Điều khoản dịch vụ</a>
+            <a href="mailto:info@decisioninsurepro.com">Liên hệ chúng tôi</a>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scroll for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

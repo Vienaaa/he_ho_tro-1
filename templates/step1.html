@@ -1,0 +1,452 @@
+<!-- <!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hệ thống hỗ trợ quyết định</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .container {
+            max-width: 400px; /* Giới hạn chiều rộng để giống ứng dụng di động */
+            margin: 2rem auto; /* Căn giữa màn hình */
+            padding: 2rem;
+            background-color: white;
+            border-radius: 1rem; /* Góc bo tròn lớn hơn */
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1); /* Đổ bóng rõ hơn */
+        }
+        .form-container {
+            background-color: #f7fafc; /* Màu nền nhạt cho form */
+            padding: 1.5rem;
+            border-radius: 0.75rem; /* Góc bo tròn cho form */
+            margin-bottom: 1rem;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #1e293b; /* Màu chữ đậm hơn */
+            font-size: 0.875rem;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem; /* Góc bo tròn cho input */
+            border: 1px solid #e2e8f0; /* Viền nhạt hơn */
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease; /* Hiệu ứng chuyển màu */
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6; /* Màu viền khi focus */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* Đổ bóng khi focus */
+        }
+        .primary-button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem; /* Góc bo tròn cho nút */
+            background-color: #10b981; /* Màu xanh lá cây đậm hơn */
+            color: white;
+            font-weight: 600;
+            font-size: 1.125rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease; /* Hiệu ứng chuyển màu */
+            box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.1); /* Đổ bóng cho nút */
+        }
+        .primary-button:hover {
+            background-color: #059669; /* Màu xanh lá cây đậm hơn khi hover */
+        }
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            color: #3b82f6; /* Màu xanh dương */
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: color 0.3s ease; /* Hiệu ứng chuyển màu */
+        }
+        .back-button:hover {
+            color: #2563eb; /* Màu xanh dương đậm hơn khi hover */
+        }
+        .header-title {
+            font-size: 1.5rem; /* Tiêu đề lớn hơn */
+            font-weight: 700; /* Tiêu đề đậm hơn */
+            color: #1e293b; /* Màu chữ đậm hơn */
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .header-description {
+            font-size: 0.875rem; /* Mô tả nhỏ hơn */
+            color: #4b5563; /* Màu chữ nhạt hơn */
+            text-align: center;
+            margin-bottom: 1.5rem;
+            line-height: 1.5rem; /* Tăng khoảng cách dòng */
+        }
+        .footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #f0f4f8; /* Màu nền nhạt cho footer */
+            color: #4b5563; /* Màu chữ nhạt hơn */
+            margin-top: 2rem;
+            border-top: 1px solid #e2e8f0; /* Viền trên nhạt */
+            border-radius: 0.75rem 0.75rem 0 0; /* Góc bo tròn trên */
+            font-size: 0.8rem;
+        }
+        .footer-link {
+            color: #3b82f6; /* Màu xanh dương cho liên kết */
+            text-decoration: underline;
+        }
+        .footer-link:hover {
+            color: #2563eb; /* Màu xanh dương đậm hơn khi hover */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container">
+        <a href="#" class="back-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+            </svg>
+            Quay lại
+        </a>
+        <h2 class="header-title">Lựa chọn nhà cung cấp dịch vụ bảo hiểm</h2>
+        <p class="header-description">
+            Vui lòng nhập số lượng tiêu chí và phương án để bắt đầu quá trình đánh giá.
+        </p>
+
+        {% if error %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <strong class="font-bold">Lỗi:</strong>
+                <span class="block sm:inline">{{ error }}</span>
+            </div>
+        {% endif %}
+
+        <div class="form-container">
+            <form method="post" class="space-y-6">
+                <div>
+                    <label for="n_criteria" class="form-label">Số lượng tiêu chí (tối thiểu 4):</label>
+                    <input type="number" id="n_criteria" name="n_criteria" min="4" required
+                           class="form-input"
+                           placeholder="Ví dụ: 5 (Giá, Chất lượng dịch vụ,...) " />
+                </div>
+                <div>
+                    <label for="n_options" class="form-label">Số lượng phương án (tối thiểu 4):</label>
+                    <input type="number" id="n_options" name="n_options" min="4" required
+                           class="form-input"
+                           placeholder="Ví dụ: 6 (Bảo Việt, Prudential,...) " />
+                </div>
+                <button type="submit" class="primary-button">
+                    Bắt đầu đánh giá
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2025 Hệ thống hỗ trợ quyết định | <a href="#" class="footer-link">Chính sách bảo mật</a>
+    </footer>
+</body>
+</html> -->
+
+
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bước 1 - Thiết lập Đánh giá</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            line-height: 1.6;
+            color: #333;
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            display: flex;
+            flex-direction: column; /* For sticky footer */
+        }
+        .navbar {
+            background-color: #1a202c;
+            padding: 1rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1.5rem;
+        }
+        .navbar-brand {
+            color: #e2e8f0;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .navbar-brand:hover {
+            color: #63b3ed;
+        }
+        .nav-links a {
+            color: #cbd5e0;
+            text-decoration: none;
+            margin-left: 2.5rem;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: color 0.3s ease, transform 0.2s ease;
+            position: relative;
+        }
+        .nav-links a:hover {
+            color: #90cdf4;
+            transform: translateY(-2px);
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: #63b3ed;
+            transition: width 0.3s ease-out;
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .nav-links a.active {
+            color: #90cdf4;
+            font-weight: 700;
+        }
+        .nav-links a.active::after {
+            width: 100%;
+        }
+
+        .main-content {
+            flex-grow: 1; /* Allows content to push footer to bottom */
+            display: flex;
+            align-items: center; /* Vertically center content */
+            justify-content: center; /* Horizontally center content */
+            padding: 2rem 1rem; /* Add some padding */
+        }
+
+        .container {
+            max-width: 500px; /* Increased max-width for better desktop look */
+            width: 100%; /* Ensure it takes full width on smaller screens */
+            padding: 3rem; /* More generous padding */
+            background-color: white;
+            border-radius: 1.5rem; /* Larger border radius */
+            box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.08); /* More pronounced shadow */
+            border: 1px solid #e0e7ee; /* Lighter border */
+            animation: fadeInScale 0.6s ease-out; /* Animation from previous steps */
+        }
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .header-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.25rem; /* Larger and bolder title */
+            font-weight: 800;
+            color: #2563eb; /* Primary blue color */
+            text-align: center;
+            margin-bottom: 1rem;
+            letter-spacing: -0.04em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .header-description {
+            font-size: 1rem; /* Slightly larger description */
+            color: #4a5568; /* Darker gray for better readability */
+            text-align: center;
+            margin-bottom: 2rem; /* More space below description */
+            line-height: 1.5;
+        }
+        .form-container {
+            background-color: #f7fafc;
+            padding: 2rem; /* More padding for form */
+            border-radius: 1rem; /* Larger border radius for form container */
+            margin-bottom: 1rem;
+            border: 1px solid #edf2f7; /* Subtle border */
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 0.75rem; /* More spacing */
+            font-weight: 600;
+            color: #2d3748; /* Darker text */
+            font-size: 0.95rem; /* Slightly larger label font */
+        }
+        .form-input {
+            width: 100%;
+            padding: 1rem; /* More padding */
+            border-radius: 0.75rem; /* Larger border radius for input */
+            border: 1px solid #cbd5e0;
+            font-size: 1.05rem; /* Larger font size */
+            margin-bottom: 1.5rem; /* More spacing below input */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.2); /* Clearer focus shadow */
+        }
+        .primary-button {
+            display: block;
+            width: 100%;
+            padding: 1.25rem; /* Larger button */
+            border-radius: 0.75rem; /* Larger border radius */
+            background-color: #10b981;
+            color: white;
+            font-weight: 700; /* Bolder font */
+            font-size: 1.35rem; /* Larger font size */
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0.75rem 1.5rem rgba(16, 185, 129, 0.2); /* Green shadow */
+            border: none;
+        }
+        .primary-button:hover {
+            background-color: #059669;
+            transform: translateY(-0.25rem);
+            box-shadow: 0 1rem 2rem rgba(16, 185, 129, 0.3);
+        }
+        .primary-button:active {
+            transform: translateY(0);
+            box-shadow: 0 0.5rem 1rem rgba(16, 185, 129, 0.15);
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            margin-bottom: 2rem; /* More space below back button */
+            color: #3b82f6;
+            font-weight: 600;
+            font-size: 1rem; /* Slightly larger font */
+            text-decoration: none; /* Remove underline by default */
+            transition: color 0.3s ease;
+        }
+        .back-button:hover {
+            color: #2563eb;
+            text-decoration: underline; /* Add underline on hover */
+        }
+        .back-button svg {
+            margin-right: 0.5rem;
+            width: 1.25rem; /* Larger icon */
+            height: 1.25rem;
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #ef4444;
+            padding: 1rem 1.25rem;
+            border-radius: 0.625rem;
+            margin-bottom: 1.5rem; /* More space */
+            animation: fadeIn 0.6s ease-in-out, shake 0.5s ease-in-out 2;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-0.5rem); }
+            75% { transform: translateX(0.5rem); }
+        }
+
+        .footer {
+            background-color: #1a202c; /* Dark background */
+            color: #cbd5e0;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-top: auto; /* Push footer to the bottom */
+        }
+        .footer-link {
+            color: #90cdf4;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .footer-link:hover {
+            color: #63b3ed;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">DecisionInsure Pro</a>
+            <div class="nav-links">
+                <a href="/">Trang chủ</a>
+                <a href="#" class="active">Bắt đầu</a> <a href="/#features">Tiêu chí</a>
+                <a href="/#providers">Nhà cung cấp</a>
+                <a href="/#contact">Liên hệ</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <a href="/" class="back-button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Quay về Trang chủ
+            </a>
+            <h2 class="header-title">Thiết lập Đánh giá Bảo hiểm</h2>
+            <p class="header-description">
+                Để bắt đầu, vui lòng nhập số lượng tiêu chí và phương án bạn muốn đưa vào phân tích.
+            </p>
+
+            {% if error %}
+                <div class="error-message" role="alert">
+                    <strong class="font-bold">Lỗi:</strong>
+                    <span class="block sm:inline">{{ error }}</span>
+                </div>
+            {% endif %}
+
+            <div class="form-container">
+                <form method="post" class="space-y-6">
+                    <div>
+                        <label for="n_criteria" class="form-label">Số lượng tiêu chí (tối thiểu 4):</label>
+                        <input type="number" id="n_criteria" name="n_criteria" min="4" required
+                               class="form-input"
+                               placeholder="Ví dụ: 5 (Chi phí, Phạm vi bảo hiểm,...) "
+                               value="{{ n_criteria if n_criteria is defined }}" />
+                    </div>
+                    <div>
+                        <label for="n_options" class="form-label">Số lượng phương án (tối thiểu 4):</label>
+                        <input type="number" id="n_options" name="n_options" min="4" required
+                               class="form-input"
+                               placeholder="Ví dụ: 6 (Bảo Việt, Prudential,...) "
+                               value="{{ n_options if n_options is defined }}" />
+                    </div>
+                    <button type="submit" class="primary-button">
+                        Bắt đầu đánh giá
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        &copy; 2025 DecisionInsure Pro. Tất cả quyền được bảo lưu. | <a href="#" class="footer-link">Chính sách bảo mật</a>
+    </footer>
+</body>
+</html>

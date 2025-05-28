@@ -1,0 +1,184 @@
+<!-- <!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bước 3 - Nhập ma trận tiêu chí</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input[type="number"] { width: 80px; padding: 5px; margin-top: 5px; }
+    button { margin-top: 30px; padding: 10px 20px; font-size: 16px; }
+    .error { color: red; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>Bước 3: Nhập ma trận tiêu chí</h1>
+
+  <form method="POST" action="{{ url_for('step3') }}">
+    <p>Vui lòng nhập giá trị ma trận cho {{ n_criteria }} tiêu chí đã chọn:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          {% for c in criteria %}
+            <th>{{ c }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for i in range(n_criteria) %}
+        <tr>
+          <td><strong>{{ criteria[i] }}</strong></td>
+          {% for j in range(n_criteria) %}
+          <td>
+            {% if j >= i %}
+              <input type="number" step="0.01" name="criteria_{{ i }}_{{ j }}" value="1" required />
+            {% else %}
+              <span>-</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button type="submit">Tiếp tục</button>
+
+    {% if error %}
+      <p class="error">{{ error }}</p>
+    {% endif %}
+  </form>
+</body>
+</html> -->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title> Nhập ma trận tiêu chí</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>.header-title {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 2.25rem; /* Larger and bolder title */
+    font-weight: 800;
+    color: #2563eb; /* Primary blue color */
+    text-align: center;
+    margin-bottom: 1rem;
+    letter-spacing: -0.04em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}</style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <nav class="bg-black text-white p-4 shadow">
+    <div class="container mx-auto flex justify-between items-center">
+      <a href="/" class="font-bold text-2xl">DECISION PRO</a>
+      <div class="space-x-6">
+        <a href="/" class="hover:text-green-400">Trang chủ</a>
+        <a href="/bat-dau" class="hover:text-green-400">Bắt đầu</a>
+        <a href="/tieu-chi" class="hover:text-green-400">Tiêu chí</a>
+        <a href="/phuong-an" class="text-green-500 font-semibold">Phương án</a>
+        <a href="/lien-he" class="hover:text-green-400">Liên hệ</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow container mx-auto p-6">
+    <h1 class="text-3xl font-bold text-center mb-8  header-title">  NHẬP MA TRẬN ĐÁNH GIÁ</h1>
+    
+    <form method="POST" class="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+      <p class="mb-6 text-center text-gray-700">Vui lòng nhập giá trị đánh giá cho các tiêu chí</p>
+
+      <div class="overflow-x-auto">
+        <table class="w-full table-auto border-collapse border border-gray-300" id="criteria-table">
+          <thead>
+            <tr class="bg-gray-200 text-gray-700">
+              <th class="border border-gray-300 p-3 sticky left-0 bg-gray-200 z-10"></th>
+              {% for c in criteria %}
+                <th class="border border-gray-300 p-3">{{ c }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for i in range(n_criteria) %}
+            <tr>
+              <td class="border border-gray-300 p-3 font-semibold sticky left-0 bg-white z-20">{{ criteria[i] }}</td>
+              {% for j in range(n_criteria) %}
+              <td class="border border-gray-300 p-3">
+                {% if i == j %}
+                  <span class="block w-20 text-center text-gray-600 font-bold">1</span>
+                {% elif j > i %}
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    min="0.01" 
+                    name="criteria_{{ i }}_{{ j }}" 
+                    data-row="{{ i }}" 
+                    data-col="{{ j }}" 
+                    required 
+                    class="w-20 p-2 border border-gray-400 rounded text-center focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                {% else %}
+                  <input 
+                    type="text" 
+                    disabled 
+                    class="w-20 p-2 bg-gray-100 border border-gray-300 rounded text-center text-gray-500"
+                    id="criteria_{{ j }}_{{ i }}"
+                  >
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if error %}
+        <div class="mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+          ⚠️ {{ error }}
+        </div>
+      {% endif %}
+
+      <div class="mt-8 text-center">
+        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-8 py-3 rounded shadow-lg transition duration-300">
+          TIẾP TỤC →
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="bg-black text-white py-6 text-center">
+    <p class="opacity-75 text-sm">
+      © 2024 Decision Pro. Bảo lưu mọi quyền.<br />
+      <a href="#" class="hover:text-green-400">Điều khoản sử dụng</a> | 
+      <a href="#" class="hover:text-green-400">Chính sách bảo mật</a>
+    </p>
+  </footer>
+
+  <script>
+    document.addEventListener('input', (event) => {
+      const input = event.target;
+      if (input.type === 'number' && input.hasAttribute('data-row') && input.hasAttribute('data-col')) {
+        const row = parseInt(input.getAttribute('data-row'));
+        const col = parseInt(input.getAttribute('data-col'));
+        const value = parseFloat(input.value);
+
+        if (value > 0) {
+          const inverseInput = document.querySelector(`#criteria_${col}_${row}`);
+          if (inverseInput) {
+            inverseInput.value = (1 / value).toFixed(2);
+          }
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
