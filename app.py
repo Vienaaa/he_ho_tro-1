@@ -426,6 +426,7 @@ def step4():
     )
 
 
+
 # @app.route('/step5', methods=['GET', 'POST'])
 # def step5():
 #     n_criteria = session.get('n_criteria')
@@ -435,16 +436,24 @@ def step4():
 #     criteria_matrix = session.get('criteria_matrix')
 #     option_matrices = session.get('option_matrices')
 
+#     empty_pairwise = {}
+
 #     if not all([n_criteria, n_options, criteria, options, criteria_matrix, option_matrices]):
-#         return render_template('step5.html', error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.")
+#         return render_template('step5.html', 
+#                                error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.", 
+#                                pairwise_matrices=empty_pairwise)
 
 #     try:
+#         # Chuyển sang numpy array
 #         criteria_matrix_np = np.array(criteria_matrix)
 #         criteria_cr = consistency_ratio(criteria_matrix_np)
 #         criteria_weights, _ = calculate_weights(criteria_matrix_np)
 
+
 #         if criteria_cr > 0.1:
-#             return render_template('step5.html', error=f"Chỉ số CR của ma trận tiêu chí vượt ngưỡng cho phép: {criteria_cr:.4f}")
+#             return render_template('step5.html', 
+#                                    error=f"Chỉ số CR của ma trận tiêu chí vượt ngưỡng: {criteria_cr:.4f}",
+#                                    pairwise_matrices=empty_pairwise)
 
 #         option_weights_per_criterion = []
 #         for c_index, matrix in enumerate(option_matrices):
@@ -452,40 +461,51 @@ def step4():
 #             cr = consistency_ratio(matrix_np)
 #             weights, _ = calculate_weights(matrix_np)
 #             if cr > 0.1:
-#                 return render_template('step5.html', error=f"Chỉ số CR của tiêu chí '{criteria[c_index]}' vượt ngưỡng cho phép.")
+#                 return render_template('step5.html', 
+#                                        error=f"Chỉ số CR của tiêu chí '{criteria[c_index]}' vượt ngưỡng.",
+#                                        pairwise_matrices=empty_pairwise)
 #             option_weights_per_criterion.append(weights)
 
-#         option_weights_matrix = np.vstack(option_weights_per_criterion)
+#         option_weights_matrix = np.vstack(option_weights_per_criterion)  # shape: (n_criteria, n_options)
+#         overall_scores = criteria_weights @ option_weights_matrix  # shape: (n_options,)
 
-#         overall_scores = criteria_weights @ option_weights_matrix
-
+#         # Tạo DataFrame kết quả và xếp hạng
 #         df_results = pd.DataFrame({
 #             'Phương án': options,
 #             'Điểm tổng hợp': overall_scores
 #         }).sort_values(by='Điểm tổng hợp', ascending=False).reset_index(drop=True)
 #         df_results['Xếp hạng'] = df_results.index + 1
 
-#         best_option = df_results.iloc[0]['Phương án'] if not df_results.empty else "Không xác định"
+#         for i, criterion in enumerate(criteria):
+#             df_results[criterion] = option_weights_matrix[i, :]
 
 #     except Exception as e:
-#         return render_template('step5.html', error=f"Lỗi khi tính toán: {e}")
+#         return render_template('step5.html', 
+#                                error=f"Lỗi khi tính toán: {e}", 
+#                                pairwise_matrices=empty_pairwise)
 
 #     if request.method == 'POST' and 'download' in request.form:
 #         output = BytesIO()
 #         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-#             df_results.to_excel(writer, index=False, sheet_name='Kết quả')
+#             df_results.to_excel(writer, index=False, sheet_name='Kết quả AHP')
 #         output.seek(0)
-#         return send_file(output, as_attachment=True, download_name='ket_qua_xep_hang.xlsx',
+#         return send_file(output,
+#                          as_attachment=True,
+#                          download_name='ket_qua_xep_hang.xlsx',
 #                          mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
+#     # Truyền ma trận tiêu chí để template show phần trọng số tiêu chí và ma trận so sánh tiêu chí
+#     pairwise_matrices = {criteria[i]: criteria_matrix_np.tolist() for i in range(len(criteria))}
+
 #     return render_template('step5.html',
-#                        criteria_cr=criteria_cr,
-#                        criteria=criteria,
-#                        criteria_weights=criteria_weights,
-#                        df_results=df_results.to_dict(orient='records'),
-#                        best_option=best_option,
-#                        zip=zip  # truyền zip vào template
-#                       )
+#                            criteria_cr=criteria_cr,
+#                            criteria=criteria,
+#                            criteria_weights=criteria_weights,
+#                            pairwise_matrices=pairwise_matrices,
+#                            df_results=df_results.to_dict(orient='records'),
+#                            zip=zip)
+
+
 @app.route('/step5', methods=['GET', 'POST'])
 def step5():
     n_criteria = session.get('n_criteria')
@@ -507,6 +527,10 @@ def step5():
         criteria_matrix_np = np.array(criteria_matrix)
         criteria_cr = consistency_ratio(criteria_matrix_np)
         criteria_weights, _ = calculate_weights(criteria_matrix_np)
+
+        # Tính Lambda max (λ_max)
+        weighted_sum = criteria_matrix_np @ criteria_weights
+        lambda_max = np.sum(weighted_sum / criteria_weights) / len(criteria_weights)
 
         if criteria_cr > 0.1:
             return render_template('step5.html', 
@@ -557,14 +581,12 @@ def step5():
 
     return render_template('step5.html',
                            criteria_cr=criteria_cr,
+                           lambda_max=lambda_max,
                            criteria=criteria,
                            criteria_weights=criteria_weights,
                            pairwise_matrices=pairwise_matrices,
                            df_results=df_results.to_dict(orient='records'),
                            zip=zip)
-
-
-
 
 
 
@@ -583,7 +605,7 @@ def home():
 
 @app.route('/history')
 def history():
-    return render_template('histotu.html')
+    return render_template('history.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

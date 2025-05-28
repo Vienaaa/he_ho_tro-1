@@ -1,4 +1,4 @@
-
+<!-- 
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -277,8 +277,8 @@
 
 
 
-
-<!-- <!DOCTYPE html>
+ -->
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
@@ -382,15 +382,15 @@
         }
 
         /* Input/Select Styling */
-        .comparison-select { /* Đổi tên class để dễ phân biệt */
+        .comparison-select {
             width: 100px;
             padding: 0.5rem;
             border: 2px solid #e0e0e0;
             border-radius: 4px;
             font-size: 1rem;
             transition: border-color 0.3s ease;
-            background-color: white; /* Đảm bảo màu nền rõ ràng */
-            appearance: none; /* Ẩn mũi tên mặc định trên một số trình duyệt */
+            background-color: white;
+            appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
             background-image: url('data:image/svg+xml;utf8,<svg fill="%234CAF50" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
@@ -405,7 +405,7 @@
             box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
         }
 
-        input[type="number"] { /* Giữ style cho input disabled */
+        input[type="number"] {
             width: 100px;
             padding: 0.5rem;
             border: 2px solid #e0e0e0;
@@ -489,7 +489,7 @@
         <div class="instruction">
             <p>📌 Chỉ nhập giá trị cho các ô <strong>phía trên đường chéo chính</strong></p>
             <p>🔢 Giá trị đường chéo luôn = 1 và các ô phía dưới sẽ tự động tính</p>
-            <p>Chọn mức độ ưu tiên từ <strong>1 (ưu tiên ngang nhau)</strong> đến <strong>9 (ưu tiên cực kỳ mạnh)</strong>.</p>
+            <p>Chọn mức độ ưu tiên: <strong>1 (ưu tiên ngang nhau)</strong> đến <strong>9 (ưu tiên cực kỳ mạnh)</strong>, hoặc <strong>1/9 đến 1/2 (ưu tiên nghịch đảo)</strong>.</p>
         </div>
 
         <form method="post">
@@ -526,8 +526,11 @@
                                                 data-j="{{ j }}"
                                                 data-cindex="{{ c_index }}"
                                             >
+                                                {% for k in range(9, 1, -1) %}
+                                                    <option value="{{ (1/k) | round(3) }}">1/{{ k }}</option>
+                                                {% endfor %}
                                                 {% for k in range(1, 10) %}
-                                                    <option value="{{ k }}">{{ k }}</option>
+                                                    <option value="{{ k }}" {% if k == 1 %}selected{% endif %}>{{ k }}</option>
                                                 {% endfor %}
                                             </select>
                                         {% else %}
@@ -552,26 +555,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.upper-cell').forEach(selectElement => {
-                selectElement.addEventListener('change', function() {
-                    const i = this.dataset.i;
-                    const j = this.dataset.j;
-                    const cIndex = this.dataset.cindex;
-                    const selectedValue = parseFloat(this.value); // Lấy giá trị đã chọn
-
-                    const mirrorCell = document.querySelector(
-                        `input[name="criteria${cIndex}_option_${j}_${i}"]`
-                    );
-                    
-                    if (mirrorCell && !isNaN(selectedValue) && selectedValue !== 0) {
-                        // Tính toán giá trị nghịch đảo và định dạng đến 3 chữ số thập phân
-                        mirrorCell.value = (1 / selectedValue).toFixed(3);
-                    }
-                });
-            });
-
-            // Gán giá trị mặc định cho các ô dưới đường chéo khi tải trang
-            document.querySelectorAll('.upper-cell').forEach(selectElement => {
+            // Function to update the mirror cell's value
+            function updateMirrorCell(selectElement) {
                 const i = selectElement.dataset.i;
                 const j = selectElement.dataset.j;
                 const cIndex = selectElement.dataset.cindex;
@@ -580,12 +565,21 @@
                 const mirrorCell = document.querySelector(
                     `input[name="criteria${cIndex}_option_${j}_${i}"]`
                 );
-
+                
                 if (mirrorCell && !isNaN(selectedValue) && selectedValue !== 0) {
                     mirrorCell.value = (1 / selectedValue).toFixed(3);
                 }
+            }
+
+            // Add event listener to each select element for changes
+            document.querySelectorAll('.upper-cell').forEach(selectElement => {
+                selectElement.addEventListener('change', function() {
+                    updateMirrorCell(this);
+                });
+                // Initial update for all upper cells when the page loads
+                updateMirrorCell(selectElement);
             });
         });
     </script>
 </body>
-</html> -->
+</html>
