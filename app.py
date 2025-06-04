@@ -463,4 +463,4 @@ def history():
 # Chạy ứng dụng Flask
 if __name__ == '__main__':
     # Chế độ debug chỉ nên dùng trong phát triển, không dùng trong sản xuất
-    app.run(debug=True ,port=3001)
+    app.run(debug=True)
