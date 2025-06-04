@@ -191,6 +191,15 @@
                     <span style="color: var(--primary-color);">(Đạt yêu cầu nhất quán)</span>
                 {% endif %}
                 <br />
+                <strong>Chỉ số nhất quán CI:</strong>
+{% if criteria_ci is not none %}
+    {{ criteria_ci }}
+{% else %}
+    Không xác định
+{% endif %}
+
+
+                <br />
                 <strong>Lambda max (λ_max):</strong> {{ lambda_max | round(4) }}
                 <br />
                 <small style="font-style: italic; color: #555;">
