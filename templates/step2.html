@@ -1,57 +1,4 @@
-<!-- <!DOCTYPE html>
-<html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <title>Bước 2 - Chọn tiêu chí và phương án</title>
-  <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; }
-    label { display: block; margin-top: 15px; font-weight: bold; }
-    select { width: 100%; padding: 6px; margin-top: 5px; box-sizing: border-box; font-size: 16px; }
-    button { margin-top: 30px; padding: 10px 20px; font-size: 16px; }
-    .error { color: red; margin-top: 15px; }
-  </style>
-</head>
-<body>
-  <h1>Bước 2: Chọn tiêu chí và phương án</h1>
-
-  <form method="POST" action="{{ url_for('step2') }}">
-    <h2>Chọn {{ n_criteria }} tiêu chí</h2>
-    {% for i in range(n_criteria) %}
-      <label for="criterion{{i}}">Tiêu chí {{i + 1}}:</label>
-      <select id="criterion{{i}}" name="criteria[]" required>
-        <option value="">-- Chọn tiêu chí --</option>
-        {% for c in available_criteria %}
-          <option value="{{ c }}" {% if selected_criteria[i] == c %}selected{% endif %}>{{ c }}</option>
-        {% endfor %}
-      </select>
-    {% endfor %}
-
-    <h2>Chọn {{ n_options }} phương án</h2>
-    {% for i in range(n_options) %}
-      <label for="option{{i}}">Phương án {{i + 1}}:</label>
-      <select id="option{{i}}" name="options[]" required>
-        <option value="">-- Chọn phương án --</option>
-        {% for o in available_options %}
-          <option value="{{ o }}" {% if selected_options[i] == o %}selected{% endif %}>{{ o }}</option>
-        {% endfor %}
-      </select>
-    {% endfor %}
-
-    <button type="submit">Tiếp tục</button>
-
-    {% if error %}
-      <p class="error">{{ error }}</p>
-    {% endif %}
-  </form>
-</body>
-</html> 
-
-
-
- -->
-
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
@@ -144,7 +91,7 @@
       border-radius: 2px;
     }
 
-    select {
+    select, input[type="text"] {
       width: 100%;
       padding: 1rem 1.5rem;
       border: 2px solid #e2e8f0;
@@ -152,7 +99,7 @@
       transition: all 0.3s ease;
     }
 
-    select:focus {
+    select:focus, input[type="text"]:focus {
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
     }
@@ -196,16 +143,16 @@
       0% { left: -50%; }
       100% { left: 150%; }
     }
-.header-title {
-    font-family: 'Montserrat', sans-serif;
-    font-size: 2.25rem; /* Larger and bolder title */
-    font-weight: 800;
-    color: #2563eb; /* Primary blue color */
-    text-align: center;
-    margin-bottom: 1rem;
-    letter-spacing: -0.04em;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
+    .header-title {
+        font-family: 'Montserrat', sans-serif;
+        font-size: 2.25rem; /* Larger and bolder title */
+        font-weight: 800;
+        color: #2563eb; /* Primary blue color */
+        text-align: center;
+        margin-bottom: 1rem;
+        letter-spacing: -0.04em;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
 
     /* Error Message */
     .error-message {
@@ -218,10 +165,52 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.8; }
     }
+
+    /* New styles for add/remove buttons */
+    .add-remove-btn {
+      background: #3b82f6; /* Blue for add */
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+      cursor: pointer;
+      margin-left: 0.5rem;
+    }
+
+    .add-remove-btn:hover {
+      background: #2563eb;
+    }
+
+    .remove-btn {
+      background: #ef4444; /* Red for remove */
+    }
+
+    .remove-btn:hover {
+      background: #dc2626;
+    }
+
+    .input-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .add-custom-btn {
+        background: #10b981; /* Green for add custom */
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        cursor: pointer;
+        margin-left: 0.5rem;
+    }
+    .add-custom-btn:hover {
+        background: #059669;
+    }
   </style>
 </head>
 <body>
-  <!-- Navigation -->
   <nav class="navbar">
     <div class="container mx-auto px-4 py-4">
       <div class="flex items-center justify-between">
@@ -238,60 +227,36 @@
     </div>
   </nav>
 
-  <!-- Main Content -->
   <main class="flex-1">
     <div class="container mx-auto px-4 py-12">
       <div class="form-container mx-auto p-8">
-<h1 class="header-title">
-    LỰA CHỌN ĐÁNH GIÁ
-</h1>
-
-
+        <h1 class="header-title">
+            LỰA CHỌN ĐÁNH GIÁ
+        </h1>
 
         <form method="POST" action="{{ url_for('step2') }}" class="space-y-8">
-          <!-- Criteria Section -->
           <div class="criteria-section">
             <h2 class="section-title text-xl font-bold mb-6">
-              Chọn {{ n_criteria }} Tiêu Chí
+              Quản lý Tiêu Chí
+              <button type="button" id="add-criteria-select-btn" class="add-remove-btn">Thêm Tiêu Chí</button>
+              <button type="button" id="add-custom-criteria-btn" class="add-custom-btn">Thêm Tiêu Chí Tùy Chỉnh</button>
             </h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {% for i in range(n_criteria) %}
-              <div>
-                <label class="block text-sm font-medium mb-2">Tiêu chí {{i + 1}}</label>
-                <select name="criteria[]" class="w-full" required>
-                  <option value="">-- Chọn tiêu chí --</option>
-                  {% for c in available_criteria %}
-                  <option value="{{ c }}" {% if selected_criteria[i]==c %}selected{% endif %}>{{ c }}</option>
-                  {% endfor %}
-                </select>
+            <div id="criteria-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
               </div>
-              {% endfor %}
-            </div>
           </div>
 
-          <!-- Options Section -->
           <div class="options-section">
             <h2 class="section-title text-xl font-bold mb-6">
-              Chọn {{ n_options }} Phương Án
+              Quản lý Phương Án
+              <button type="button" id="add-option-select-btn" class="add-remove-btn">Thêm Phương Án</button>
+              <button type="button" id="add-custom-option-btn" class="add-custom-btn">Thêm Phương Án Tùy Chỉnh</button>
             </h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {% for i in range(n_options) %}
-              <div>
-                <label class="block text-sm font-medium mb-2">Phương án {{i + 1}}</label>
-                <select name="options[]" class="w-full" required>
-                  <option value="">-- Chọn phương án --</option>
-                  {% for o in available_options %}
-                  <option value="{{ o }}" {% if selected_options[i]==o %}selected{% endif %}>{{ o }}</option>
-                  {% endfor %}
-                </select>
+            <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
               </div>
-              {% endfor %}
-            </div>
           </div>
 
-          <!-- Submit Section -->
           <div class="text-center mt-12">
             <button type="submit" class="submit-btn font-semibold">
               TIẾP TỤC →
@@ -308,7 +273,6 @@
     </div>
   </main>
 
-  <!-- Footer -->
   <footer class="bg-black text-white py-6 mt-12">
     <div class="container mx-auto px-4 text-center">
       <p class="text-sm opacity-75">
@@ -318,5 +282,151 @@
       </p>
     </div>
   </footer>
+
+  <script>
+    // Define your available criteria and options
+    const predefinedCriteria = [
+      "Chi phí & mức phí bảo hiểm",
+      "Phạm vi bảo hiểm",
+      "Uy tín & đánh giá",
+      "Dịch vụ khách hàng",
+      "Điều khoản hợp đồng"
+    ];
+
+    const predefinedOptions = [
+      "Bảo Việt Nhân Thọ",
+      "Prudential Việt Nam",
+      "Dai-ichi Việt Nam",
+      "Hanwha Life Việt Nam"
+    ];
+
+    // Function to create a select dropdown for criteria
+    function addCriteriaSelectField() {
+      const container = document.getElementById('criteria-container');
+      const div = document.createElement('div');
+      div.className = 'input-group';
+      
+      let optionsHtml = '<option value="">-- Chọn tiêu chí --</option>';
+      predefinedCriteria.forEach(criterion => {
+        optionsHtml += `<option value="${criterion}">${criterion}</option>`;
+      });
+      
+      div.innerHTML = `
+        <label class="block text-sm font-medium sr-only">Tiêu chí</label>
+        <select name="criteria[]" required>
+          ${optionsHtml}
+        </select>
+        <button type="button" class="remove-btn add-remove-btn" onclick="removeField(this)">Xóa</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // Function to create a text input for custom criteria
+    function addCustomCriteriaField() {
+      const container = document.getElementById('criteria-container');
+      const div = document.createElement('div');
+      div.className = 'input-group';
+      
+      div.innerHTML = `
+        <label class="block text-sm font-medium sr-only">Tiêu chí tùy chỉnh</label>
+        <input type="text" name="criteria[]" placeholder="Nhập tên tiêu chí tùy chỉnh" required>
+        <button type="button" class="remove-btn add-remove-btn" onclick="removeField(this)">Xóa</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // Function to create a select dropdown for options
+    function addOptionSelectField() {
+      const container = document.getElementById('options-container');
+      const div = document.createElement('div');
+      div.className = 'input-group';
+
+      let optionsHtml = '<option value="">-- Chọn phương án --</option>';
+      predefinedOptions.forEach(option => {
+        optionsHtml += `<option value="${option}">${option}</option>`;
+      });
+      
+      div.innerHTML = `
+        <label class="block text-sm font-medium sr-only">Phương án</label>
+        <select name="options[]" required>
+          ${optionsHtml}
+        </select>
+        <button type="button" class="remove-btn add-remove-btn" onclick="removeField(this)">Xóa</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // Function to create a text input for custom options
+    function addCustomOptionField() {
+      const container = document.getElementById('options-container');
+      const div = document.createElement('div');
+      div.className = 'input-group';
+      
+      div.innerHTML = `
+        <label class="block text-sm font-medium sr-only">Phương án tùy chỉnh</label>
+        <input type="text" name="options[]" placeholder="Nhập tên phương án tùy chỉnh" required>
+        <button type="button" class="remove-btn add-remove-btn" onclick="removeField(this)">Xóa</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // Function to remove an input/select field (common for both criteria and options)
+    function removeField(button) {
+      button.parentNode.remove();
+    }
+
+    // Event listeners for add buttons
+    document.getElementById('add-criteria-select-btn').addEventListener('click', addCriteriaSelectField);
+    document.getElementById('add-custom-criteria-btn').addEventListener('click', addCustomCriteriaField);
+    document.getElementById('add-option-select-btn').addEventListener('click', addOptionSelectField);
+    document.getElementById('add-custom-option-btn').addEventListener('click', addCustomOptionField);
+
+
+    // Populate initial criteria and options on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const criteriaContainer = document.getElementById('criteria-container');
+        const optionsContainer = document.getElementById('options-container');
+
+        // Populate initial criteria (using select dropdowns)
+        predefinedCriteria.forEach(criterion => {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            let optionsHtml = '<option value="">-- Chọn tiêu chí --</option>';
+            // Add all predefined criteria to each dynamically created select
+            predefinedCriteria.forEach(crit => {
+              optionsHtml += `<option value="${crit}" ${crit === criterion ? 'selected' : ''}>${crit}</option>`;
+            });
+
+            div.innerHTML = `
+                <label class="block text-sm font-medium sr-only">Tiêu chí</label>
+                <select name="criteria[]" required>
+                  ${optionsHtml}
+                </select>
+                <button type="button" class="remove-btn add-remove-btn" onclick="removeField(this)">Xóa</button>
+            `;
+            criteriaContainer.appendChild(div);
+        });
+
+        // Populate initial options (using select dropdowns)
+        predefinedOptions.forEach(option => {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            let optionsHtml = '<option value="">-- Chọn phương án --</option>';
+            // Add all predefined options to each dynamically created select
+            predefinedOptions.forEach(opt => {
+              optionsHtml += `<option value="${opt}" ${opt === option ? 'selected' : ''}>${opt}</option>`;
+            });
+
+            div.innerHTML = `
+                <label class="block text-sm font-medium sr-only">Phương án</label>
+                <select name="options[]" required>
+                  ${optionsHtml}
+                </select>
+                <button type="button" class="remove-btn add-remove-btn" onclick="removeField(this)">Xóa</button>
+            `;
+            optionsContainer.appendChild(div);
+        });
+    });
+  </script>
 </body>
 </html>

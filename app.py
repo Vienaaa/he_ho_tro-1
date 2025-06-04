@@ -1,7 +1,7 @@
+    
 # from flask import Flask, render_template, request, redirect, url_for, send_file, session
 # import numpy as np
 # import pandas as pd
-# from ahp_utils import calculate_weights, consistency_ratio, rank_options
 # from io import BytesIO
 
 # app = Flask(__name__)
@@ -24,7 +24,28 @@
 #     "Manulife Việt Nam"
 # ]
 
-# @app.route('/', methods=['GET', 'POST'])
+# # Hàm tính trọng số eigenvector và Consistency Ratio (CR)
+# def calculate_weights(matrix):
+#     eigvals, eigvecs = np.linalg.eig(matrix)
+#     max_index = np.argmax(eigvals.real)
+#     max_eigval = eigvals.real[max_index]
+#     weights = eigvecs[:, max_index].real
+#     weights = weights / np.sum(weights)
+#     return weights, max_eigval
+
+# def consistency_ratio(matrix):
+#     n = matrix.shape[0]
+#     weights, max_eigval = calculate_weights(matrix)
+#     ci = (max_eigval - n) / (n - 1)
+#     # Bảng RI (Random Index) cho n từ 1 đến 10 (theo chuẩn AHP)
+#     ri_dict = {1: 0.0, 2: 0.0, 3: 0.58, 4: 0.90, 5: 1.12, 6: 1.24, 7: 1.32, 8: 1.41, 9: 1.45, 10: 1.49}
+#     ri = ri_dict.get(n, 1.49)  # Nếu n > 10, lấy RI = 1.49
+#     if ri == 0:
+#         return 0  # Với n=1 hoặc 2, CR luôn = 0
+#     cr = ci / ri
+#     return cr
+
+# @app.route('/step1', methods=['GET', 'POST'])
 # def step1():
 #     error = None
 #     if request.method == 'POST':
@@ -50,11 +71,9 @@
 
 #     if request.method == 'POST':
 #         try:
-#             # Lấy tiêu chí và phương án từ form
 #             selected_criteria = request.form.getlist('criteria[]')
 #             selected_options = request.form.getlist('options[]')
 
-#             # Kiểm tra xem người dùng có chọn đủ không
 #             if len(set(selected_criteria)) != n_criteria or len(set(selected_options)) != n_options:
 #                 error = "Bạn phải chọn đủ và không được lặp các tiêu chí hoặc phương án."
 #             else:
@@ -79,7 +98,7 @@
 # @app.route('/step3', methods=['GET', 'POST'])
 # def step3():
 #     n_criteria = session.get('n_criteria')
-#     criteria = session.get('criteria')  # Lấy tiêu chí từ session
+#     criteria = session.get('criteria')
 
 #     if not n_criteria or not criteria:
 #         return redirect(url_for('step1'))
@@ -89,7 +108,6 @@
 
 #     if request.method == 'POST':
 #         try:
-#             # Xây dựng ma trận tiêu chí từ form
 #             matrix = []
 #             for i in range(n_criteria):
 #                 row = []
@@ -99,7 +117,6 @@
 #                 matrix.append(row)
 #             matrix = np.array(matrix)
             
-#             # Kiểm tra nhất quán
 #             cr = consistency_ratio(matrix)
 #             if cr > 0.1:
 #                 error = f"Chỉ số nhất quán CR={cr:.3f} > 0.1. Vui lòng nhập lại ma trận."
@@ -121,18 +138,15 @@
 #     )
 
 
-
 # @app.route('/step4', methods=['GET', 'POST'])
 # def step4():
-#     # Lấy dữ liệu từ session
 #     n_criteria = session.get('n_criteria')
 #     n_options = session.get('n_options')
 #     criteria = session.get('criteria')
 #     options = session.get('options')
     
-#     # Kiểm tra dữ liệu session
 #     if not (n_criteria and n_options and criteria and options):
-#         return redirect(url_for('step1'))  # Quay lại bước 1 nếu thiếu dữ liệu
+#         return redirect(url_for('step1'))
     
 #     error = None
 
@@ -150,9 +164,8 @@
 #                 matrix = np.array(matrix)
 #                 option_matrices.append(matrix)
 
-#             # Lưu ma trận so sánh vào session
 #             session['option_matrices'] = [m.tolist() for m in option_matrices]
-#             return redirect(url_for('step5'))  # Chuyển sang bước 5
+#             return redirect(url_for('step5'))
 #         except Exception:
 #             error = "Dữ liệu không hợp lệ, vui lòng nhập lại."
 
@@ -163,8 +176,10 @@
 #         criteria=criteria,
 #         options=options,
 #         error=error,
-#         enumerate=enumerate  # Truyền hàm enumerate vào template
+#         enumerate=enumerate
 #     )
+
+
 
 
 
@@ -175,80 +190,131 @@
 #     n_options = session.get('n_options')
 #     criteria = session.get('criteria')
 #     options = session.get('options')
-#     criteria_matrix = session.get('criteria_matrix')  # Ma trận so sánh tiêu chí (n_criteria x n_criteria)
-#     option_matrices = session.get('option_matrices')  # Danh sách ma trận điểm của các phương án theo từng tiêu chí
+#     criteria_matrix = session.get('criteria_matrix')
+#     option_matrices = session.get('option_matrices')
 
-#     # Kiểm tra dữ liệu
+#     empty_pairwise = {}
+
 #     if not all([n_criteria, n_options, criteria, options, criteria_matrix, option_matrices]):
-#         return render_template('step5.html', error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.")
+#         return render_template('step5.html', 
+#                                error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.", 
+#                                pairwise_matrices=empty_pairwise)
 
 #     try:
-#         # Tính chỉ số CR và trọng số tiêu chí
+#         # Chuyển sang numpy array
 #         criteria_matrix_np = np.array(criteria_matrix)
-#         criteria_cr, criteria_weights = calculate_cr(criteria_matrix_np)
+#         criteria_cr = consistency_ratio(criteria_matrix_np)
+#         criteria_weights, _ = calculate_weights(criteria_matrix_np)
+
+#         # Tính Lambda max (λ_max)
+#         weighted_sum = criteria_matrix_np @ criteria_weights
+#         lambda_max = np.sum(weighted_sum / criteria_weights) / len(criteria_weights)
 
 #         if criteria_cr > 0.1:
-#             return render_template('step5.html', error=f"Chỉ số CR của ma trận tiêu chí vượt ngưỡng cho phép: {criteria_cr:.4f}")
+#             return render_template('step5.html', 
+#                                    error=f"Chỉ số CR của ma trận tiêu chí vượt ngưỡng: {criteria_cr:.4f}",
+#                                    pairwise_matrices=empty_pairwise)
 
-#         # Tính trọng số phương án theo từng tiêu chí
 #         option_weights_per_criterion = []
 #         for c_index, matrix in enumerate(option_matrices):
 #             matrix_np = np.array(matrix)
-#             cr, weights = calculate_cr(matrix_np)
+#             cr = consistency_ratio(matrix_np)
+#             weights, _ = calculate_weights(matrix_np)
 #             if cr > 0.1:
-#                 return render_template('step5.html', error=f"Chỉ số CR của tiêu chí '{criteria[c_index]}' vượt ngưỡng cho phép.")
+#                 return render_template('step5.html', 
+#                                        error=f"Chỉ số CR của tiêu chí '{criteria[c_index]}' vượt ngưỡng.",
+#                                        pairwise_matrices=empty_pairwise)
 #             option_weights_per_criterion.append(weights)
 
-#         # Chuyển danh sách trọng số phương án theo từng tiêu chí thành mảng numpy (n_criteria x n_options)
-#         option_weights_matrix = np.vstack(option_weights_per_criterion)
+#         option_weights_matrix = np.vstack(option_weights_per_criterion)  # shape: (n_criteria, n_options)
+#         overall_scores = criteria_weights @ option_weights_matrix  # shape: (n_options,)
 
-#         # Tính điểm tổng hợp theo trọng số tiêu chí
-#         overall_scores = criteria_weights @ option_weights_matrix  # (n_options, )
-
-#         # Tạo DataFrame kết quả, xếp hạng
+#         # Tạo DataFrame kết quả và xếp hạng
 #         df_results = pd.DataFrame({
 #             'Phương án': options,
 #             'Điểm tổng hợp': overall_scores
 #         }).sort_values(by='Điểm tổng hợp', ascending=False).reset_index(drop=True)
 #         df_results['Xếp hạng'] = df_results.index + 1
 
-#         best_option = df_results.iloc[0]['Phương án'] if not df_results.empty else "Không xác định"
+#         for i, criterion in enumerate(criteria):
+#             df_results[criterion] = option_weights_matrix[i, :]
 
 #     except Exception as e:
-#         return render_template('step5.html', error=f"Lỗi khi tính toán: {e}")
+#         return render_template('step5.html', 
+#                                error=f"Lỗi khi tính toán: {e}", 
+#                                pairwise_matrices=empty_pairwise)
 
-#     # Nếu người dùng yêu cầu tải file excel
 #     if request.method == 'POST' and 'download' in request.form:
-#         output = io.BytesIO()
+#         output = BytesIO()
 #         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-#             df_results.to_excel(writer, index=False, sheet_name='Kết quả')
-#             writer.save()
+#             df_results.to_excel(writer, index=False, sheet_name='Kết quả AHP')
 #         output.seek(0)
-#         return send_file(output, as_attachment=True, download_name='ket_qua_xep_hang.xlsx',
+#         return send_file(output,
+#                          as_attachment=True,
+#                          download_name='ket_qua_xep_hang.xlsx',
 #                          mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+#     # Truyền ma trận tiêu chí để template show phần trọng số tiêu chí và ma trận so sánh tiêu chí
+#     pairwise_matrices = {criteria[i]: criteria_matrix_np.tolist() for i in range(len(criteria))}
 
 #     return render_template('step5.html',
 #                            criteria_cr=criteria_cr,
+#                            lambda_max=lambda_max,
 #                            criteria=criteria,
 #                            criteria_weights=criteria_weights,
+#                            pairwise_matrices=pairwise_matrices,
 #                            df_results=df_results.to_dict(orient='records'),
-#                            best_option=best_option)
+#                            zip=zip)
 
 
 
 
+
+
+
+
+
+
+
+# @app.route('/')
+# def home():
+#     return render_template('home.html')
+
+# # Biến toàn cục lưu lịch sử
+# history_list = []
+
+
+# #-----------
+# @app.route('/save_history', methods=['POST'])
+# def save_history():
+#     description = request.form.get('description')  # Lấy mô tả từ form
+#     if description:
+#         # Lưu lịch sử vào danh sách
+#         history_list.append({'timestamp': 'Hiện tại', 'description': description})
+#         return "Lịch sử đã được lưu", 200
+#     return "Thiếu dữ liệu để lưu", 400
 
 # @app.route('/history')
 # def history():
-#     return "Chức năng lịch sử đang phát triển."
+#     # Hiển thị danh sách lịch sử từ bộ nhớ
+#     return render_template('history.html', history_list=history_list)
+
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
+
+
+
 
 
 # if __name__ == '__main__':
 #     app.run(debug=True)
-from flask import Flask, render_template, request, redirect, url_for, send_file, session
+from flask import Flask, render_template, request, redirect, url_for, send_file, session, Response
 import numpy as np
 import pandas as pd
 from io import BytesIO
+import matplotlib.pyplot as plt
+import io
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'  # Thay bằng key của bạn
@@ -426,86 +492,6 @@ def step4():
     )
 
 
-
-# @app.route('/step5', methods=['GET', 'POST'])
-# def step5():
-#     n_criteria = session.get('n_criteria')
-#     n_options = session.get('n_options')
-#     criteria = session.get('criteria')
-#     options = session.get('options')
-#     criteria_matrix = session.get('criteria_matrix')
-#     option_matrices = session.get('option_matrices')
-
-#     empty_pairwise = {}
-
-#     if not all([n_criteria, n_options, criteria, options, criteria_matrix, option_matrices]):
-#         return render_template('step5.html', 
-#                                error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.", 
-#                                pairwise_matrices=empty_pairwise)
-
-#     try:
-#         # Chuyển sang numpy array
-#         criteria_matrix_np = np.array(criteria_matrix)
-#         criteria_cr = consistency_ratio(criteria_matrix_np)
-#         criteria_weights, _ = calculate_weights(criteria_matrix_np)
-
-
-#         if criteria_cr > 0.1:
-#             return render_template('step5.html', 
-#                                    error=f"Chỉ số CR của ma trận tiêu chí vượt ngưỡng: {criteria_cr:.4f}",
-#                                    pairwise_matrices=empty_pairwise)
-
-#         option_weights_per_criterion = []
-#         for c_index, matrix in enumerate(option_matrices):
-#             matrix_np = np.array(matrix)
-#             cr = consistency_ratio(matrix_np)
-#             weights, _ = calculate_weights(matrix_np)
-#             if cr > 0.1:
-#                 return render_template('step5.html', 
-#                                        error=f"Chỉ số CR của tiêu chí '{criteria[c_index]}' vượt ngưỡng.",
-#                                        pairwise_matrices=empty_pairwise)
-#             option_weights_per_criterion.append(weights)
-
-#         option_weights_matrix = np.vstack(option_weights_per_criterion)  # shape: (n_criteria, n_options)
-#         overall_scores = criteria_weights @ option_weights_matrix  # shape: (n_options,)
-
-#         # Tạo DataFrame kết quả và xếp hạng
-#         df_results = pd.DataFrame({
-#             'Phương án': options,
-#             'Điểm tổng hợp': overall_scores
-#         }).sort_values(by='Điểm tổng hợp', ascending=False).reset_index(drop=True)
-#         df_results['Xếp hạng'] = df_results.index + 1
-
-#         for i, criterion in enumerate(criteria):
-#             df_results[criterion] = option_weights_matrix[i, :]
-
-#     except Exception as e:
-#         return render_template('step5.html', 
-#                                error=f"Lỗi khi tính toán: {e}", 
-#                                pairwise_matrices=empty_pairwise)
-
-#     if request.method == 'POST' and 'download' in request.form:
-#         output = BytesIO()
-#         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-#             df_results.to_excel(writer, index=False, sheet_name='Kết quả AHP')
-#         output.seek(0)
-#         return send_file(output,
-#                          as_attachment=True,
-#                          download_name='ket_qua_xep_hang.xlsx',
-#                          mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-
-#     # Truyền ma trận tiêu chí để template show phần trọng số tiêu chí và ma trận so sánh tiêu chí
-#     pairwise_matrices = {criteria[i]: criteria_matrix_np.tolist() for i in range(len(criteria))}
-
-#     return render_template('step5.html',
-#                            criteria_cr=criteria_cr,
-#                            criteria=criteria,
-#                            criteria_weights=criteria_weights,
-#                            pairwise_matrices=pairwise_matrices,
-#                            df_results=df_results.to_dict(orient='records'),
-#                            zip=zip)
-
-
 @app.route('/step5', methods=['GET', 'POST'])
 def step5():
     n_criteria = session.get('n_criteria')
@@ -561,6 +547,9 @@ def step5():
         for i, criterion in enumerate(criteria):
             df_results[criterion] = option_weights_matrix[i, :]
 
+        # Lưu df_results vào session để dùng tạo biểu đồ
+        session['df_results'] = df_results.to_dict(orient='records')
+
     except Exception as e:
         return render_template('step5.html', 
                                error=f"Lỗi khi tính toán: {e}", 
@@ -589,23 +578,75 @@ def step5():
                            zip=zip)
 
 
+# --- Các route tạo biểu đồ ---
+
+@app.route('/plot_criteria_weights.png')
+def plot_criteria_weights():
+    criteria = session.get('criteria')
+    criteria_weights = session.get('criteria_weights')
+    if not criteria or not criteria_weights:
+        return "No data", 404
+    
+    plt.figure(figsize=(8, 4))
+    plt.bar(criteria, criteria_weights, color='skyblue')
+    plt.title('Trọng số tiêu chí')
+    plt.ylabel('Trọng số')
+    plt.tight_layout()
+
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    plt.close()
+    img.seek(0)
+
+    return Response(img.getvalue(), mimetype='image/png')
 
 
+@app.route('/plot_alternative_scores.png')
+def plot_alternative_scores():
+    options = session.get('options')
+    df_results = session.get('df_results')  # Lấy data đã lưu
 
+    if not options or not df_results:
+        return "No data", 404
 
+    df = pd.DataFrame(df_results)
 
+    plt.figure(figsize=(10, 5))
+    plt.bar(df['Phương án'], df['Điểm tổng hợp'], color='coral')
+    plt.title('Điểm tổng hợp các phương án')
+    plt.ylabel('Điểm')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
 
+    img = io.BytesIO()
+    plt.savefig(img, format='png')
+    plt.close()
+    img.seek(0)
 
+    return Response(img.getvalue(), mimetype='image/png')
 
 
 @app.route('/')
 def home():
     return render_template('home.html')
 
+# Biến toàn cục lưu lịch sử
+history_list = []
+
+
+@app.route('/save_history', methods=['POST'])
+def save_history():
+    description = request.form.get('description')
+    if description:
+        history_list.append(description)
+        return "Đã lưu lịch sử"
+    return "Không có dữ liệu để lưu", 400
+
 
 @app.route('/history')
 def history():
-    return render_template('history.html')
+    return render_template('history.html', history=history_list)
+
 
 if __name__ == '__main__':
     app.run(debug=True)

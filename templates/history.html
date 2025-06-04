@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Lịch Sử AHP</title>
     <style>
         :root {
             --primary-color: #4CAF50;
             --secondary-color: #2196F3;
+            --danger-color: #f44336;
         }
 
         body {
@@ -29,80 +30,109 @@
 
         h1 {
             text-align: center;
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
             font-size: 2.2rem;
             border-bottom: 3px solid var(--primary-color);
             padding-bottom: 1rem;
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
         }
 
-        .history-table {
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin: 2rem 0;
+            margin-top: 1.5rem;
         }
 
-        .history-table th, .history-table td {
-            padding: 1rem;
+        th, td {
+            padding: 12px;
+            border: 1px solid #e0e0e0;
             text-align: left;
-            border-bottom: 1px solid #e0e0e0;
         }
 
-        .history-table th {
+        th {
             background-color: var(--primary-color);
             color: white;
-        }
-
-        .view-btn {
-            background: var(--secondary-color);
-            color: white;
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .view-btn:hover {
-            background: #1976d2;
+            font-weight: 600;
         }
 
         .no-data {
             text-align: center;
-            color: #555;
             margin: 2rem 0;
+            font-size: 1.1rem;
+            color: #777;
+        }
+
+        .history-btn {
+            background: linear-gradient(to right, var(--primary-color), #45a049);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-decoration: none;
+            margin-top: 2rem;
+            text-align: center;
+        }
+
+        .history-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0 10px;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Lịch Sử AHP</h1>
+        <h1>Lịch Sử Phân Tích AHP</h1>
+
+        {# Dữ liệu bịa cứng, thay thế bằng biến history_list thực tế khi render #}
+        {% set history_list = [
+            {'timestamp': '2025-05-28 10:15:00', 'description': 'Phân tích lần 1 với tiêu chí ban đầu.'},
+            {'timestamp': '2025-05-27 14:30:00', 'description': 'Cập nhật tiêu chí và phương án mới.'},
+            {'timestamp': '2025-05-26 09:45:00', 'description': 'Phân tích lần đầu với dữ liệu mẫu.'}
+        ] %}
 
         {% if history_list and history_list|length > 0 %}
-            <table class="history-table">
-                <thead>
-                    <tr>
-                        <th>Thời gian</th>
-                        <th>Mô tả</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in history_list %}
-                    <tr>
-                        <td>{{ item.timestamp }}</td>
-                        <td>{{ item.description }}</td>
-                        <td>
-                            <a href="/results/{{ item.id }}" class="view-btn">Xem Kết Quả</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Mô tả</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in history_list %}
+                <tr>
+                    <td>{{ item.timestamp }}</td>
+                    <td>{{ item.description }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% else %}
-            <div class="no-data">Chưa có lịch sử nào được lưu.</div>
+        <p class="no-data">Chưa có lịch sử nào được lưu.</p>
         {% endif %}
+
+        <div style="text-align: center;">
+            <a href="/" class="history-btn">🏠 Quay về Trang Chủ</a>
+        </div>
     </div>
 </body>
 </html>
