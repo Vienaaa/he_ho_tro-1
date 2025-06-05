@@ -1,10 +1,14 @@
 # Import các thư viện cần thiết
-from flask import Flask, render_template, request, redirect, url_for, send_file, session, Response
+from flask import Flask, render_template, request, redirect, url_for, send_file, session, Response, make_response
 import numpy as np
 import pandas as pd
 from io import BytesIO
+import matplotlib
+matplotlib.use('Agg')  # Đặt backend Agg
 import matplotlib.pyplot as plt
 import io
+import base64
+
 
 # Khởi tạo ứng dụng Flask
 app = Flask(__name__)
@@ -282,6 +286,71 @@ def step4():
     )
 
 # Bước 5: Tính toán và hiển thị kết quả cuối cùng
+import base64
+import io
+import matplotlib.pyplot as plt
+
+def get_plot_option_scores_pie_base64():
+    option_labels = session.get('option_labels')
+    option_scores = session.get('option_scores')
+    if not option_labels or not option_scores:
+        return None
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    colors = plt.cm.Set3.colors[:len(option_scores)]
+    explode = [0.1 if i == 0 else 0 for i in range(len(option_scores))]
+
+    ax.pie(
+        option_scores,
+        labels=option_labels,
+        autopct='%1.1f%%',
+        startangle=140,
+        colors=colors,
+        explode=explode,
+        textprops={'fontsize': 12}
+    )
+    ax.set_title('Phân Bố Điểm Tổng Hợp Các Phương Án', fontsize=16, pad=20)
+
+    plt.tight_layout()
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    plt.close(fig)
+    img.seek(0)
+
+    img_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
+    return f"data:image/png;base64,{img_base64}"
+
+# Nếu bạn có biểu đồ trọng số tiêu chí, viết tương tự hoặc bỏ nếu không cần
+def get_plot_criteria_weights_pie_base64():
+    criteria = session.get('criteria')
+    criteria_weights = session.get('criteria_weights')
+    if not criteria or not criteria_weights:
+        return None
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    colors = plt.cm.Pastel1.colors[:len(criteria)]
+    explode = [0.1 if i == 0 else 0 for i in range(len(criteria))]
+
+    ax.pie(
+        criteria_weights,
+        labels=criteria,
+        autopct='%1.1f%%',
+        startangle=140,
+        colors=colors,
+        explode=explode,
+        textprops={'fontsize': 12}
+    )
+    ax.set_title('Phân Bố Trọng Số Tiêu Chí', fontsize=16, pad=20)
+
+    plt.tight_layout()
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    plt.close(fig)
+    img.seek(0)
+
+    img_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
+    return f"data:image/png;base64,{img_base64}"
+
 @app.route('/step5', methods=['GET', 'POST'])
 def step5():
     n_criteria = session.get('n_criteria')
@@ -291,102 +360,104 @@ def step5():
     criteria_matrix = session.get('criteria_matrix')
     option_matrices = session.get('option_matrices')
 
-    # Dữ liệu rỗng để hiển thị nếu có lỗi
     empty_results = pd.DataFrame().to_dict(orient='records')
     empty_pairwise = {}
 
-    # Kiểm tra dữ liệu cần thiết từ các bước trước
     if not all([n_criteria, n_options, criteria, options, criteria_matrix, option_matrices]):
         return render_template('step5.html', 
-                               error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.", 
-                               df_results=empty_results,
-                               pairwise_matrices=empty_pairwise)
+                              error="Dữ liệu không đầy đủ. Vui lòng kiểm tra lại các bước trước.", 
+                              df_results=empty_results,
+                              pairwise_matrices=empty_pairwise,
+                              plot_option_scores_base64=None,
+                              plot_criteria_weights_base64=None)
 
     try:
-        # Chuyển ma trận tiêu chí từ list sang numpy array
         criteria_matrix_np = np.array(criteria_matrix)
-        
-        # Tính toán CR và trọng số cho ma trận tiêu chí
         criteria_cr = consistency_ratio(criteria_matrix_np)
         criteria_weights, lambda_max_criteria = calculate_weights(criteria_matrix_np)
 
-        # Kiểm tra lại CR của ma trận tiêu chí (phòng trường hợp người dùng bỏ qua bước 3 hoặc dữ liệu bị thay đổi)
         if criteria_cr > 0.1:
             return render_template('step5.html', 
-                                   error=f"Chỉ số nhất quán CR của ma trận tiêu chí vượt ngưỡng: {criteria_cr:.4f}. Vui lòng quay lại Bước 3 để điều chỉnh.",
-                                   df_results=empty_results,
-                                   pairwise_matrices=empty_pairwise)
+                                  error=f"Chỉ số nhất quán CR của ma trận tiêu chí vượt ngưỡng: {criteria_cr:.4f}.",
+                                  df_results=empty_results,
+                                  pairwise_matrices=empty_pairwise,
+                                  plot_option_scores_base64=None,
+                                  plot_criteria_weights_base64=None)
 
         option_weights_per_criterion = []
         for c_index, matrix_list in enumerate(option_matrices):
             matrix_np = np.array(matrix_list)
             cr = consistency_ratio(matrix_np)
             weights, _ = calculate_weights(matrix_np)
-            
-            # Kiểm tra CR cho từng ma trận phương án
             if cr > 0.1:
                 return render_template('step5.html', 
-                                       error=f"Chỉ số nhất quán CR={cr:.4f} của ma trận phương án dưới tiêu chí '{criteria[c_index]}' vượt ngưỡng. Vui lòng quay lại Bước 4 để điều chỉnh.",
-                                       df_results=empty_results,
-                                       pairwise_matrices=empty_pairwise)
+                                      error=f"Chỉ số nhất quán CR={cr:.4f} của ma trận phương án dưới tiêu chí '{criteria[c_index]}' vượt ngưỡng.",
+                                      df_results=empty_results,
+                                      pairwise_matrices=empty_pairwise,
+                                      plot_option_scores_base64=None,
+                                      plot_criteria_weights_base64=None)
             option_weights_per_criterion.append(weights)
 
-        # Chồng các vector trọng số phương án thành một ma trận
-        # Mỗi hàng là trọng số của các phương án đối với một tiêu chí cụ thể
-        option_weights_matrix = np.vstack(option_weights_per_criterion) # shape: (n_criteria, n_options)
-        
-        # Tính điểm tổng hợp cho từng phương án
-        # Nhân ma trận trọng số tiêu chí (hàng) với ma trận trọng số phương án (cột)
-        overall_scores = criteria_weights @ option_weights_matrix # shape: (n_options,)
+        option_weights_matrix = np.vstack(option_weights_per_criterion)
+        overall_scores = criteria_weights @ option_weights_matrix
 
-        # Tạo DataFrame kết quả và xếp hạng
         df_results = pd.DataFrame({
             'Phương án': options,
             'Điểm tổng hợp': overall_scores
         }).sort_values(by='Điểm tổng hợp', ascending=False).reset_index(drop=True)
         df_results['Xếp hạng'] = df_results.index + 1
-
-        # Thêm trọng số của từng phương án theo từng tiêu chí vào DataFrame
         for i, criterion in enumerate(criteria):
             df_results[criterion] = option_weights_matrix[i, :]
 
-        # Lưu df_results vào session để dùng tạo biểu đồ và tải xuống
+        # In dữ liệu để kiểm tra
+        print("Criteria:", criteria)
+        print("Criteria Weights:", criteria_weights.tolist())
+        print("Option Labels:", df_results['Phương án'].tolist())
+        print("Option Scores:", df_results['Điểm tổng hợp'].tolist())
+
         session['df_results'] = df_results.to_dict(orient='records')
+        session['criteria'] = criteria
+        session['criteria_weights'] = criteria_weights.tolist()
+        session['option_labels'] = df_results['Phương án'].tolist()
+        session['option_scores'] = df_results['Điểm tổng hợp'].tolist()
 
     except Exception as e:
-        # Xử lý các lỗi tính toán khác
         return render_template('step5.html', 
-                               error=f"Lỗi khi tính toán: {e}. Vui lòng kiểm tra lại dữ liệu.", 
-                               df_results=empty_results,
-                               pairwise_matrices=empty_pairwise)
+                              error=f"Lỗi khi tính toán: {e}.", 
+                              df_results=empty_results,
+                              pairwise_matrices=empty_pairwise,
+                              plot_option_scores_base64=None,
+                              plot_criteria_weights_base64=None)
 
-    # Xử lý yêu cầu tải xuống file Excel
     if request.method == 'POST' and 'download' in request.form:
         output = BytesIO()
         with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
             df_results.to_excel(writer, index=False, sheet_name='Kết quả AHP')
         output.seek(0)
         return send_file(output,
-                         as_attachment=True,
-                         download_name='ket_qua_xep_hang.xlsx',
-                         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+                        as_attachment=True,
+                        download_name='ket_qua_xep_hang.xlsx',
+                        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-    # Chuẩn bị dữ liệu để hiển thị ma trận tiêu chí và trọng số
-    # (pairwise_matrices ở đây chỉ là ma trận tiêu chí, không phải tất cả các ma trận)
+    # Chuẩn bị base64 ảnh biểu đồ
+    plot_option_scores_base64 = get_plot_option_scores_pie_base64()
+    plot_criteria_weights_base64 = get_plot_criteria_weights_pie_base64()
+
     pairwise_matrices = {
         "Ma trận so sánh tiêu chí": criteria_matrix_np.tolist()
     }
 
     return render_template('step5.html',
-                           criteria_cr=criteria_cr,
-                           lambda_max=lambda_max_criteria, # Hiển thị lambda_max của ma trận tiêu chí
-                           criteria=criteria,
-                           criteria_weights=criteria_weights,
-                           pairwise_matrices=pairwise_matrices,
-                           df_results=df_results.to_dict(orient='records'),
-                           zip=zip) # Truyền hàm zip để sử dụng trong template
-
-# --- Các route tạo biểu đồ ---
+                          criteria_cr=criteria_cr,
+                          lambda_max=lambda_max_criteria,
+                          criteria_ci=(lambda_max_criteria - len(criteria)) / (len(criteria) - 1) if len(criteria) > 1 else 0,
+                          criteria=criteria,
+                          criteria_weights=criteria_weights,
+                          pairwise_matrices=pairwise_matrices,
+                          df_results=df_results.to_dict(orient='records'),
+                          plot_option_scores_base64=plot_option_scores_base64,
+                          plot_criteria_weights_base64=plot_criteria_weights_base64,
+                          zip=zip)
 
 @app.route('/plot_criteria_weights.png')
 def plot_criteria_weights():
@@ -460,7 +531,100 @@ def history():
     """Hiển thị trang lịch sử."""
     return render_template('history.html', history=history_list)
 
+
+@app.route('/plot_criteria_weights_pie.png')
+def plot_criteria_weights_pie():
+    criteria = session.get('criteria')
+    criteria_weights = session.get('criteria_weights')
+    if not criteria or not criteria_weights:
+        print("Error: No criteria or criteria_weights in session")
+        return "Không có dữ liệu để tạo biểu đồ trọng số tiêu chí.", 404
+    
+    fig, ax = plt.subplots(figsize=(8, 8))
+    colors = plt.cm.Set2.colors[:len(criteria_weights)]  # Màu Set2 cho tiêu chí
+    explode = [0.05] * len(criteria_weights)  # Tách nhẹ các lát
+    plt.pie(criteria_weights, labels=criteria, autopct='%1.1f%%', startangle=140, colors=colors, explode=explode, textprops={'fontsize': 12})
+    plt.title('Phân Bố Trọng Số Các Tiêu Chí', fontsize=16, pad=20)
+    plt.tight_layout()
+
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    plt.close(fig)
+    img.seek(0)
+    buf = BytesIO()
+    buf.seek(0)
+    response = make_response(buf.read())
+    response.headers['Content-Type'] = 'image/png'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return Response(img.getvalue(), mimetype='image/png')
+
+@app.route('/plot_option_scores_pie.png')
+def plot_option_scores_pie():
+    option_labels = session.get('option_labels')
+    option_scores = session.get('option_scores')
+    
+    if not option_labels or not option_scores:
+        return "Không có dữ liệu để tạo biểu đồ điểm tổng hợp phương án.", 404
+
+    fig, ax = plt.subplots(figsize=(8, 8))
+    colors = plt.cm.Set3.colors[:len(option_scores)]
+    explode = [0.1 if i == 0 else 0 for i in range(len(option_scores))]
+
+    ax.pie(
+        option_scores,
+        labels=option_labels,
+        autopct='%1.1f%%',
+        startangle=140,
+        colors=colors,
+        explode=explode,
+        textprops={'fontsize': 12}
+    )
+    ax.set_title('Phân Bố Điểm Tổng Hợp Các Phương Án', fontsize=16, pad=20)
+
+    plt.tight_layout()
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    plt.close(fig)
+    img.seek(0)
+
+    # Trả về ảnh đúng cách
+    response = make_response(img.getvalue())
+    response.headers['Content-Type'] = 'image/png'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
 # Chạy ứng dụng Flask
+
+def get_plot_option_scores_pie_base64():
+    option_labels = session.get('option_labels')
+    option_scores = session.get('option_scores')
+    
+    if not option_labels or not option_scores:
+        return None
+    
+    fig, ax = plt.subplots(figsize=(8, 8))
+    colors = plt.cm.Set3.colors[:len(option_scores)]
+    explode = [0.1 if i == 0 else 0 for i in range(len(option_scores))]
+
+    ax.pie(
+        option_scores,
+        labels=option_labels,
+        autopct='%1.1f%%',
+        startangle=140,
+        colors=colors,
+        explode=explode,
+        textprops={'fontsize': 12}
+    )
+    ax.set_title('Phân Bố Điểm Tổng Hợp Các Phương Án', fontsize=16, pad=20)
+
+    plt.tight_layout()
+    img = io.BytesIO()
+    fig.savefig(img, format='png', bbox_inches='tight')
+    plt.close(fig)
+    img.seek(0)
+
+    img_base64 = base64.b64encode(img.getvalue()).decode('utf-8')
+    return f"data:image/png;base64,{img_base64}"
+
 if __name__ == '__main__':
     # Chế độ debug chỉ nên dùng trong phát triển, không dùng trong sản xuất
     app.run(debug=True)
